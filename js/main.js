@@ -1349,8 +1349,8 @@ function showContextMenu(event, id, type, name, address, currentDesc = '') {
         }
     });
     menu.style.display = 'block';
-    menu.style.left = `${event.pageX}px`;
-    menu.style.top = `${event.pageY}px`;
+    menu.style.left = `${event.clientX}px`;
+    menu.style.top = `${event.clientY}px`;
 }
 
 document.addEventListener('click', () => document.getElementById('contextMenu').style.display = 'none');
