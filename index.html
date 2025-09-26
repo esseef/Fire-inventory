@@ -35,15 +35,15 @@
             </div>
         </div>
         <div class="toolbar">
-            <button class="btn primary-btn" onclick="showAddModal('device')"><i class="fas fa-plus-circle"></i> Добавить прибор</button>
-            <button class="btn secondary-btn" onclick="showAddModal('line')"><i class="fas fa-sitemap"></i> Добавить линию</button>
-            <button class="btn secondary-btn" onclick="showAddModal('equipment')"><i class="fas fa-plug"></i> Добавить оборудование</button>
-            <button class="btn secondary-btn" onclick="showAuditLog()"><i class="fas fa-history"></i> Журнал</button>
-            <button class="btn secondary-btn" onclick="exportToExcel()"><i class="fas fa-file-excel"></i> Excel</button>
-            <button class="btn secondary-btn" onclick="exportJSON()"><i class="fas fa-file-code"></i> JSON</button>
-            <button class="btn secondary-btn" onclick="importJSON()"><i class="fas fa-upload"></i> Импорт JSON</button>
-            <button class="btn secondary-btn" onclick="clearAll()"><i class="fas fa-trash-alt"></i> Очистить всё</button>
-            <button class="btn secondary-btn" onclick="toggleCharts()"><i class="fas fa-chart-pie"></i> Диаграммы</button>
+            <button class="btn primary-btn btn-device" onclick="showAddModal('device')"><i class="fas fa-plus-circle"></i> Добавить прибор</button>
+            <button class="btn secondary-btn btn-line" onclick="showAddModal('line')"><i class="fas fa-sitemap"></i> Добавить линию</button>
+            <button class="btn secondary-btn btn-equipment" onclick="showAddModal('equipment')"><i class="fas fa-plug"></i> Добавить оборудование</button>
+            <button class="btn secondary-btn btn-audit" onclick="showAuditLog()"><i class="fas fa-history"></i> Журнал</button>
+            <button class="btn secondary-btn btn-excel" onclick="exportToExcel()"><i class="fas fa-file-excel"></i> Excel</button>
+            <button class="btn secondary-btn btn-json-export" onclick="exportJSON()"><i class="fas fa-file-code"></i> JSON</button>
+            <button class="btn secondary-btn btn-json-import" onclick="importJSON()"><i class="fas fa-upload"></i> Импорт JSON</button>
+            <button class="btn secondary-btn btn-clear" onclick="clearAll()"><i class="fas fa-trash-alt"></i> Очистить всё</button>
+            <button class="btn secondary-btn btn-charts" onclick="toggleCharts()"><i class="fas fa-chart-pie"></i> Диаграммы</button>
         </div>
         <div id="statsDisplay" class="stats-display"></div>
         <div id="chartsContainer" class="charts-container" style="display: none;">
