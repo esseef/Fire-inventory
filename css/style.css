@@ -149,55 +149,50 @@ body {
 
 /* Стили для вторичной кнопки (оставляем как базовый стиль для остальных) */
 .btn.secondary-btn {
-    background-color: #6c757d; /* Стандартный серый цвет для вторичных кнопок */
-    color: white;
-    border: 1px solid #6c757d;
+    /* background-color: #6c757d; /* Закомментируем или удалим стандартный серый цвет */
+    /* color: white; */
+    /* border: 1px solid #6c757d; */
+    color: white; /* Убедимся, что цвет текста белый */
+    border: none; /* Уберем бордер, если он не нужен */
 }
 
-/* Уникальные цвета для кнопок */
-.btn-device {
-    background-color: var(--primary-color); /* Синий */
-    border-color: var(--primary-color);
-}
+/* Уникальные цвета для кнопок на основе их функции (onclick) */
+/* Добавить прибор (уже задан через .primary-btn) */
+/* .btn-device { */
+/*     background-color: var(--primary-color); /* Синий */
+/*     border-color: var(--primary-color); */
+/* } */
 
-.btn-line {
+.toolbar button[onclick="showAddModal('line')"] {
     background-color: #3498db; /* Светло-синий */
-    border-color: #3498db;
 }
 
-.btn-equipment {
+.toolbar button[onclick="showAddModal('equipment')"] {
     background-color: #9b59b6; /* Фиолетовый */
-    border-color: #9b59b6;
 }
 
-.btn-audit {
+.toolbar button[onclick="showAuditLog()"] {
     background-color: #95a5a6; /* Серый */
-    border-color: #95a5a6;
 }
 
-.btn-excel {
+.toolbar button[onclick="exportToExcel()"] {
     background-color: #217346; /* Зеленый (цвет Excel) */
-    border-color: #217346;
 }
 
-.btn-json-export {
+.toolbar button[onclick="exportJSON()"] {
     background-color: #f39c12; /* Оранжевый */
-    border-color: #f39c12;
 }
 
-.btn-json-import {
+.toolbar button[onclick="importJSON()"] {
     background-color: #17a2b8; /* Бирюзовый */
-    border-color: #17a2b8;
 }
 
-.btn-clear {
+.toolbar button[onclick="clearAll()"] {
     background-color: #e74c3c; /* Красный */
-    border-color: #e74c3c;
 }
 
-.btn-charts {
+.toolbar button[onclick="toggleCharts()"] {
     background-color: #1abc9c; /* Бирюзовый */
-    border-color: #1abc9c;
 }
 
 .btn-icon {
