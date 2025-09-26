@@ -1462,10 +1462,10 @@ function updateCharts() {
 
     statusChartInstance = new Chart(ctx1, {
     type: 'pie',
-     {
+    data: { // ← ДОБАВЛЕНО `data:`
         labels: statusLabels,
         datasets: [{
-             statusValues,
+            data: statusValues,
             backgroundColor: statusChartColors,
             borderWidth: 1
         }]
@@ -1481,14 +1481,13 @@ function updateCharts() {
     }
 });
 
-    // ИСПРАВЛЕНО: Убрана лишняя запятая после 'data'
-    deviceChartInstance = new Chart(ctx2, {
+deviceChartInstance = new Chart(ctx2, {
     type: 'bar',
-     {
+    data: { // ← ДОБАВЛЕНО `data:`
         labels: Object.keys(deviceData),
         datasets: [{
             label: 'Количество оборудования',
-             Object.values(deviceData),
+            data: Object.values(deviceData), // ← Убедитесь, что `data:` есть и здесь
             backgroundColor: 'rgba(46, 134, 171, 0.7)',
             borderColor: 'rgba(46, 134, 171, 1)',
             borderWidth: 1
