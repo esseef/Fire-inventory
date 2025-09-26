@@ -1483,17 +1483,17 @@ function updateCharts() {
 
 deviceChartInstance = new Chart(ctx2, {
     type: 'bar',
-    data: { // ← ДОБАВЛЕНО `data:`
+    data: { // <-- Имя свойства 'data'
         labels: Object.keys(deviceData),
         datasets: [{
             label: 'Количество оборудования',
-            data: Object.values(deviceData), // ← Убедитесь, что `data:` есть и здесь
+            data: Object.values(deviceData), // <-- Имя свойства 'data' внутри datasets
             backgroundColor: 'rgba(46, 134, 171, 0.7)',
             borderColor: 'rgba(46, 134, 171, 1)',
             borderWidth: 1
         }]
-    },
-    options: {
+    }, // <-- Запятая после 'data', разделяющая свойства объекта Chart
+    options: { // <-- Начало свойства 'options'
         responsive: true,
         plugins: {
             title: {
