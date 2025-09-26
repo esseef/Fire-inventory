@@ -122,36 +122,82 @@ body {
 .btn {
     padding: 10px 15px;
     border: none;
-    border-radius: var(--border-radius);
+    border-radius: 5px;
     cursor: pointer;
-    transition: var(--transition);
-    text-decoration: none;
+    font-size: 14px;
     display: inline-flex;
     align-items: center;
-    gap: 5px;
-    font-size: 14px;
+    gap: 8px;
+    transition: background-color 0.3s, border-color 0.3s;
+    text-decoration: none;
+    color: white; /* Цвет текста по умолчанию для кнопок */
 }
 
 .btn i {
-    font-size: 14px;
+    font-size: 16px; /* Размер иконки */
 }
 
-.primary-btn {
+.btn:hover {
+    opacity: 0.9;
+}
+
+/* Стили для первичной кнопки (оставляем как есть или изменяем при необходимости) */
+.btn.primary-btn {
     background-color: var(--primary-color);
     color: white;
 }
 
-.primary-btn:hover {
-    opacity: 0.9;
-}
-
-.secondary-btn {
-    background-color: #6c757d;
+/* Стили для вторичной кнопки (оставляем как базовый стиль для остальных) */
+.btn.secondary-btn {
+    background-color: #6c757d; /* Стандартный серый цвет для вторичных кнопок */
     color: white;
+    border: 1px solid #6c757d;
 }
 
-.secondary-btn:hover {
-    opacity: 0.9;
+/* Уникальные цвета для кнопок */
+.btn-device {
+    background-color: var(--primary-color); /* Синий */
+    border-color: var(--primary-color);
+}
+
+.btn-line {
+    background-color: #3498db; /* Светло-синий */
+    border-color: #3498db;
+}
+
+.btn-equipment {
+    background-color: #9b59b6; /* Фиолетовый */
+    border-color: #9b59b6;
+}
+
+.btn-audit {
+    background-color: #95a5a6; /* Серый */
+    border-color: #95a5a6;
+}
+
+.btn-excel {
+    background-color: #217346; /* Зеленый (цвет Excel) */
+    border-color: #217346;
+}
+
+.btn-json-export {
+    background-color: #f39c12; /* Оранжевый */
+    border-color: #f39c12;
+}
+
+.btn-json-import {
+    background-color: #17a2b8; /* Бирюзовый */
+    border-color: #17a2b8;
+}
+
+.btn-clear {
+    background-color: #e74c3c; /* Красный */
+    border-color: #e74c3c;
+}
+
+.btn-charts {
+    background-color: #1abc9c; /* Бирюзовый */
+    border-color: #1abc9c;
 }
 
 .btn-icon {
