@@ -1525,6 +1525,8 @@ function updateCharts() {
         },
         options: {
             responsive: true,
+            maintainAspectRatio: false,
+            aspectRatio: 1.3,
             plugins: {
                 title: {
                     display: true,
@@ -1549,6 +1551,8 @@ function updateCharts() {
         }, // <-- Запятая после 'data', разделяющая свойства объекта Chart
         options: { // <-- Начало свойства 'options'
             responsive: true,
+            maintainAspectRatio: false,
+            aspectRatio: 1.3,
             plugins: {
                 title: {
                     display: true,
