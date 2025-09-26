@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Учет пожарного оборудования</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body data-theme="light">
+    <div class="container">
+        <div class="header-controls">
+            <h1><i class="fas fa-fire-extinguisher"></i> Учет пожарного оборудования</h1>
+            <button class="theme-toggle" id="themeToggle">
+                <i class="fas fa-moon"></i> Тема
+            </button>
+        </div>
+
+        <div class="search-filter">
+            <h3><i class="fas fa-search"></i> Поиск и фильтрация</h3>
+            <input type="text" id="searchInput" placeholder="Поиск по названию, адресу, зоне или описанию...">
+            <select id="statusFilter">
+                <option value="">Все состояния</option>
+                <option value="Исправен">Исправен</option>
+                <option value="Запыленность">Запыленность</option>
+                <option value="Критическая запыленность">Критическая запыленность</option>
+                <option value="Отключен">Отключен</option>
+                <option value="Потеря связи">Потеря связи</option>
+                <option value="Нет данных">Нет данных</option>
+            </select>
+            <button id="applyFiltersBtn"><i class="fas fa-filter"></i> Применить фильтры</button>
+            <button id="clearFiltersBtn"><i class="fas fa-times"></i> Сбросить</button>
+            <button id="expandAllBtn"><i class="fas fa-folder-open"></i> Развернуть все</button>
+            <button id="collapseAllBtn"><i class="fas fa-folder"></i> Свернуть все</button>
+            <button id="toggleChartsBtn"><i class="fas fa-chart-bar"></i> Графики</button>
+        </div>
+
+        <div class="breadcrumbs" id="breadcrumbs">
+            <span id="allEquipmentLink">Все оборудование</span>
+        </div>
+
+        <div class="bulk-actions" id="bulkActions">
+            <span>Выбрано: <span id="selectedCount">0</span> элементов</span>
+            <button id="changeStatusBulkBtn"><i class="fas fa-exchange-alt"></i> Изменить статус</button>
+            <button id="changeDateBulkBtn"><i class="fas fa-calendar-alt"></i> Изменить дату проверки</button>
+            <button class="delete-btn" id="deleteBulkBtn"><i class="fas fa-trash"></i> Удалить выбранное</button>
+            <button id="clearSelectionBtn"><i class="fas fa-times"></i> Снять выделение</button>
+        </div>
+
+        <div class="statistics">
+            <h3><i class="fas fa-chart-pie"></i> Статистика оборудования</h3>
+            <div id="statsDisplay"></div>
+        </div>
+
+        <div class="charts-container" id="chartsContainer" style="display: none;">
+            <div class="chart-wrapper"><canvas id="statusChart"></canvas></div>
+            <div class="chart-wrapper"><canvas id="deviceChart"></canvas></div>
+        </div>
+
+        <div class="add-form">
+            <h3><i class="fas fa-plus"></i> Добавить новое оборудование</h3>
+            <select id="addType">
+                <option value="device">Прибор</option>
+                <option value="line">Линия АЛС</option>
+                <option value="equipment">Оборудование</option>
+            </select>
+
+            <div id="deviceForm">
+                <input type="text" id="newDeviceName" placeholder="Название прибора (например: Рубеж-2ОП3)">
+                <button id="addNewDeviceBtn"><i class="fas fa-save"></i> Добавить прибор</button>
+            </div>
+
+            <div id="lineForm" style="display: none;">
+                <select id="parentDevice"><option value="">Выберите прибор</option></select>
+                <input type="text" id="newLineName" placeholder="Название линии (например: АЛС 1)">
+                <button id="addNewLineBtn"><i class="fas fa-save"></i> Добавить линию</button>
+            </div>
+
+            <div id="equipmentForm" style="display: none;">
+                <select id="parentLine"><option value="">Выберите линию</option></select>
+                <input type="text" id="newEquipmentName" placeholder="Название оборудования">
+                <input type="text" id="newAddress" placeholder="Адрес (например: 1.21)" class="tooltip" title="Формат: число.число">
+                <input type="text" id="newZone" placeholder="Зона (например: 3.3)" class="tooltip" title="Формат: число.число">
+                <input type="date" id="newLastCheck">
+                <select id="newStatus">
+                    <option value="">Выберите состояние</option>
+                    <option value="Запыленность">Запыленность</option>
+                    <option value="Критическая запыленность">Критическая запыленность</option>
+                    <option value="Отключен">Отключен</option>
+                    <option value="Потеря связи">Потеря связи</option>
+                    <option value="Нет данных">Нет данных</option>
+                    <option value="Исправен">Исправен</option>
+                </select>
+                <button id="addNewEquipmentBtn"><i class="fas fa-save"></i> Добавить оборудование</button>
+            </div>
+        </div>
+
+        <table id="equipmentTable">
+            <thead>
+                <tr>
+                    <th width="30px"><input type="checkbox" id="selectAll"></th>
+                    <th width="30px"></th>
+                    <th>Название оборудования <i class="fas fa-sort sort-indicator"></i></th>
+                    <th>Адрес <i class="fas fa-sort sort-indicator"></i></th>
+                    <th>Зона <i class="fas fa-sort sort-indicator"></i></th>
+                    <th>Состояние <i class="fas fa-sort sort-indicator"></i></th>
+                    <th>Дата проверки <i class="fas fa-sort sort-indicator"></i></th>
+                    <th>Действия</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+        </table>
+
+        <div class="footer-actions">
+            <button class="export-btn" id="exportExcelBtn"><i class="fas fa-file-excel"></i> Сохранить в Excel</button>
+            <button class="json-btn" id="exportJsonBtn"><i class="fas fa-file-export"></i> Экспорт JSON</button>
+            <button class="json-btn" id="importJsonBtn"><i class="fas fa-file-import"></i> Импорт JSON</button>
+            <button id="addEmptyEquipmentBtn"><i class="fas fa-plus"></i> Добавить оборудование</button>
+            <button class="secondary-btn" id="showAuditLogBtn"><i class="fas fa-history"></i> Журнал изменений</button>
+            <button class="delete-btn" id="clearAllBtn"><i class="fas fa-trash"></i> Очистить все</button>
+        </div>
+
+        <div class="legend">
+            <h4><i class="fas fa-palette"></i> Обозначения состояний:</h4>
+            <div class="legend-items">
+                <span class="status-исправен"><i class="fas fa-check-circle"></i> Исправен</span>
+                <span class="status-запыленность"><i class="fas fa-exclamation-triangle"></i> Запыленность</span>
+                <span class="status-критическая-запыленность"><i class="fas fa-exclamation-circle"></i> Критическая запыленность</span>
+                <span class="status-отключен"><i class="fas fa-power-off"></i> Отключен</span>
+                <span class="status-потеря-связи"><i class="fas fa-wifi"></i> Потеря связи</span>
+                <span class="status-нет-данных"><i class="fas fa-question-circle"></i> Нет данных</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="context-menu" id="contextMenu"></div>
+    <div class="toast" id="toast"></div>
+    <input type="file" id="fileInput" accept=".json" style="display: none;">
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
