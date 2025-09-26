@@ -11,11 +11,8 @@
     <div class="container">
         <div class="header-controls">
             <h1><i class="fas fa-fire-extinguisher"></i> Учет пожарного оборудования</h1>
-            <button class="theme-toggle" id="themeToggle">
-                <i class="fas fa-moon"></i> Тема
-            </button>
+            <button class="theme-toggle" id="themeToggle"><i class="fas fa-moon"></i> Тема</button>
         </div>
-
         <div class="search-filter">
             <h3><i class="fas fa-search"></i> Поиск и фильтрация</h3>
             <input type="text" id="searchInput" placeholder="Поиск по названию, адресу, зоне или описанию...">
@@ -28,101 +25,7 @@
                 <option value="Потеря связи">Потеря связи</option>
                 <option value="Нет данных">Нет данных</option>
             </select>
-            <button id="applyFiltersBtn"><i class="fas fa-filter"></i> Применить фильтры</button>
-            <button id="clearFiltersBtn"><i class="fas fa-times"></i> Сбросить</button>
-            <button id="expandAllBtn"><i class="fas fa-folder-open"></i> Развернуть все</button>
-            <button id="collapseAllBtn"><i class="fas fa-folder"></i> Свернуть все</button>
-            <button id="toggleChartsBtn"><i class="fas fa-chart-bar"></i> Графики</button>
-        </div>
-
-        <div class="breadcrumbs" id="breadcrumbs">
-            <span id="allEquipmentLink">Все оборудование</span>
-        </div>
-
-        <div class="bulk-actions" id="bulkActions">
-            <span>Выбрано: <span id="selectedCount">0</span> элементов</span>
-            <button id="changeStatusBulkBtn"><i class="fas fa-exchange-alt"></i> Изменить статус</button>
-            <button id="changeDateBulkBtn"><i class="fas fa-calendar-alt"></i> Изменить дату проверки</button>
-            <button class="delete-btn" id="deleteBulkBtn"><i class="fas fa-trash"></i> Удалить выбранное</button>
-            <button id="clearSelectionBtn"><i class="fas fa-times"></i> Снять выделение</button>
-        </div>
-
-        <div class="statistics">
-            <h3><i class="fas fa-chart-pie"></i> Статистика оборудования</h3>
-            <div id="statsDisplay"></div>
-        </div>
-
-        <div class="charts-container" id="chartsContainer" style="display: none;">
-            <div class="chart-wrapper"><canvas id="statusChart"></canvas></div>
-            <div class="chart-wrapper"><canvas id="deviceChart"></canvas></div>
-        </div>
-
-        <div class="add-form">
-            <h3><i class="fas fa-plus"></i> Добавить новое оборудование</h3>
-            <select id="addType">
-                <option value="device">Прибор</option>
-                <option value="line">Линия АЛС</option>
-                <option value="equipment">Оборудование</option>
-            </select>
-
-            <div id="deviceForm">
-                <input type="text" id="newDeviceName" placeholder="Название прибора (например: Рубеж-2ОП3)">
-                <button id="addNewDeviceBtn"><i class="fas fa-save"></i> Добавить прибор</button>
-            </div>
-
-            <div id="lineForm" style="display: none;">
-                <select id="parentDevice"><option value="">Выберите прибор</option></select>
-                <input type="text" id="newLineName" placeholder="Название линии (например: АЛС 1)">
-                <button id="addNewLineBtn"><i class="fas fa-save"></i> Добавить линию</button>
-            </div>
-
-            <div id="equipmentForm" style="display: none;">
-                <select id="parentLine"><option value="">Выберите линию</option></select>
-                <input type="text" id="newEquipmentName" placeholder="Название оборудования">
-                <input type="text" id="newAddress" placeholder="Адрес (например: 1.21)" class="tooltip" title="Формат: число.число">
-                <input type="text" id="newZone" placeholder="Зона (например: 3.3)" class="tooltip" title="Формат: число.число">
-                <input type="date" id="newLastCheck">
-                <select id="newStatus">
-                    <option value="">Выберите состояние</option>
-                    <option value="Запыленность">Запыленность</option>
-                    <option value="Критическая запыленность">Критическая запыленность</option>
-                    <option value="Отключен">Отключен</option>
-                    <option value="Потеря связи">Потеря связи</option>
-                    <option value="Нет данных">Нет данных</option>
-                    <option value="Исправен">Исправен</option>
-                </select>
-                <button id="addNewEquipmentBtn"><i class="fas fa-save"></i> Добавить оборудование</button>
-            </div>
-        </div>
-
-        <table id="equipmentTable">
-            <thead>
-                <tr>
-                    <th width="30px"><input type="checkbox" id="selectAll"></th>
-                    <th width="30px"></th>
-                    <th>Название оборудования <i class="fas fa-sort sort-indicator"></i></th>
-                    <th>Адрес <i class="fas fa-sort sort-indicator"></i></th>
-                    <th>Зона <i class="fas fa-sort sort-indicator"></i></th>
-                    <th>Состояние <i class="fas fa-sort sort-indicator"></i></th>
-                    <th>Дата проверки <i class="fas fa-sort sort-indicator"></i></th>
-                    <th>Действия</th>
-                </tr>
-            </thead>
-            <tbody id="tableBody"></tbody>
-        </table>
-
-        <div class="footer-actions">
-            <button class="export-btn" id="exportExcelBtn"><i class="fas fa-file-excel"></i> Сохранить в Excel</button>
-            <button class="json-btn" id="exportJsonBtn"><i class="fas fa-file-export"></i> Экспорт JSON</button>
-            <button class="json-btn" id="importJsonBtn"><i class="fas fa-file-import"></i> Импорт JSON</button>
-            <button id="addEmptyEquipmentBtn"><i class="fas fa-plus"></i> Добавить оборудование</button>
-            <button class="secondary-btn" id="showAuditLogBtn"><i class="fas fa-history"></i> Журнал изменений</button>
-            <button class="delete-btn" id="clearAllBtn"><i class="fas fa-trash"></i> Очистить все</button>
-        </div>
-
-        <div class="legend">
-            <h4><i class="fas fa-palette"></i> Обозначения состояний:</h4>
-            <div class="legend-items">
+            <div class="status-legend">
                 <span class="status-исправен"><i class="fas fa-check-circle"></i> Исправен</span>
                 <span class="status-запыленность"><i class="fas fa-exclamation-triangle"></i> Запыленность</span>
                 <span class="status-критическая-запыленность"><i class="fas fa-exclamation-circle"></i> Критическая запыленность</span>
@@ -131,17 +34,81 @@
                 <span class="status-нет-данных"><i class="fas fa-question-circle"></i> Нет данных</span>
             </div>
         </div>
+        <div class="toolbar">
+            <button class="btn primary-btn" onclick="showAddModal('device')"><i class="fas fa-plus-circle"></i> Добавить прибор</button>
+            <button class="btn secondary-btn" onclick="showAddModal('line')"><i class="fas fa-sitemap"></i> Добавить линию</button>
+            <button class="btn secondary-btn" onclick="showAddModal('equipment')"><i class="fas fa-plug"></i> Добавить оборудование</button>
+            <button class="btn secondary-btn" onclick="showAuditLog()"><i class="fas fa-history"></i> Журнал</button>
+            <button class="btn secondary-btn" onclick="exportToExcel()"><i class="fas fa-file-excel"></i> Excel</button>
+            <button class="btn secondary-btn" onclick="exportJSON()"><i class="fas fa-file-code"></i> JSON</button>
+            <button class="btn secondary-btn" onclick="importJSON()"><i class="fas fa-upload"></i> Импорт JSON</button>
+            <button class="btn secondary-btn" onclick="clearAll()"><i class="fas fa-trash-alt"></i> Очистить всё</button>
+            <button class="btn secondary-btn" onclick="toggleCharts()"><i class="fas fa-chart-pie"></i> Диаграммы</button>
+        </div>
+        <div id="statsDisplay" class="stats-display"></div>
+        <div id="chartsContainer" class="charts-container" style="display: none;">
+            <canvas id="statusChart"></canvas>
+            <canvas id="deviceChart"></canvas>
+        </div>
+        <div class="table-container">
+            <table id="equipmentTable" class="equipment-table">
+                <thead>
+                    <tr>
+                        <th onclick="sortTable(0)">Прибор <i class="fas fa-sort"></i></th>
+                        <th onclick="sortTable(1)">Линия АЛС <i class="fas fa-sort"></i></th>
+                        <th onclick="sortTable(2)">Оборудование <i class="fas fa-sort"></i></th>
+                        <th onclick="sortTable(3)">Адрес <i class="fas fa-sort"></i></th>
+                        <th onclick="sortTable(4)">Зона <i class="fas fa-sort"></i></th>
+                        <th onclick="sortTable(5)">Состояние <i class="fas fa-sort"></i></th>
+                        <th onclick="sortTable(6)">Дата проверки <i class="fas fa-sort"></i></th>
+                        <th onclick="sortTable(7)">Описание <i class="fas fa-sort"></i></th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <!-- Данные будут загружены здесь -->
+                </tbody>
+            </table>
+        </div>
+        <div class="selection-info">
+            <span id="selectionCount">Выбрано: 0 элементов</span>
+            <div class="bulk-actions">
+                <button class="btn secondary-btn" onclick="changeStatusBulk()" title="Изменить статус выбранных элементов"><i class="fas fa-exchange-alt"></i> Статус</button>
+                <button class="btn secondary-btn" onclick="changeDateBulk()" title="Изменить дату проверки выбранных элементов"><i class="fas fa-calendar-alt"></i> Дата</button>
+                <button class="btn secondary-btn" onclick="deleteBulk()" title="Удалить выбранные элементы"><i class="fas fa-trash"></i> Удалить</button>
+            </div>
+        </div>
     </div>
-
     <div class="context-menu" id="contextMenu"></div>
     <div class="toast" id="toast"></div>
     <input type="file" id="fileInput" accept=".json" style="display: none;">
     <div class="loading-overlay" id="loadingOverlay">
-        <div class="loading-spinner"></div>
+        <div class="spinner"></div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    <script src="js/main.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+    <script>
+        // Вставьте вашу конфигурацию Firebase здесь
+        const firebaseConfig = {
+            // ЗАМЕНЕНЫ НА ВАШИ ЗНАЧЕНИЯ ИЗ ФАЙЛА объект конфигурации.txt
+            apiKey: "AIzaSyC1X7s800mXq2f84887289890215903021",
+            authDomain: "fire-inventory-12345.firebaseapp.com",
+            databaseURL: "https://fire-inventory-12345-default-rtdb.firebaseio.com/",
+            projectId: "fire-inventory-12345",
+            storageBucket: "fire-inventory-12345.appspot.com",
+            messagingSenderId: "123456789012",
+            appId: "1:123456789012:web:abc123def456ghi789jkl0"
+        };
+
+        // Инициализация Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        // Путь к вашим данным в Firebase
+        const equipmentDataRef = database.ref('equipmentData');
+        const auditLogRef = database.ref('auditLog');
+    </script>
+    <script src="js/main.js"></script> <!-- Загружаем основной скрипт после инициализации Firebase -->
 </body>
 </html>
