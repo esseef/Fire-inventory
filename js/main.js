@@ -1461,54 +1461,54 @@ function updateCharts() {
     });
 
     statusChartInstance = new Chart(ctx1, {
-        type: 'pie',
-         {
-            labels: statusLabels,
-            datasets: [{
-                data: statusValues,
-                backgroundColor: statusChartColors,
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                title: {
-                    display: true,
-                    text: 'Распределение по состояниям'
-                }
+    type: 'pie',
+     {
+        labels: statusLabels,
+        datasets: [{
+             statusValues,
+            backgroundColor: statusChartColors,
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            title: {
+                display: true,
+                text: 'Распределение по состояниям'
             }
         }
-    });
+    }
+});
 
     // ИСПРАВЛЕНО: Убрана лишняя запятая после 'data'
     deviceChartInstance = new Chart(ctx2, {
-        type: 'bar',
-         { // <-- Начало объекта data
-            labels: Object.keys(deviceData),
-            datasets: [{
-                label: 'Количество оборудования',
-                 Object.values(deviceData),
-                backgroundColor: 'rgba(46, 134, 171, 0.7)',
-                borderColor: 'rgba(46, 134, 171, 1)',
-                borderWidth: 1
-            }]
-        }, // <-- Запятая после 'data', разделяющая свойства объекта Chart
-        options: { // <-- Начало свойства 'options'
-            responsive: true,
-            plugins: {
-                title: {
-                    display: true,
-                    text: 'Оборудование по приборам'
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true
-                }
+    type: 'bar',
+     {
+        labels: Object.keys(deviceData),
+        datasets: [{
+            label: 'Количество оборудования',
+             Object.values(deviceData),
+            backgroundColor: 'rgba(46, 134, 171, 0.7)',
+            borderColor: 'rgba(46, 134, 171, 1)',
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            title: {
+                display: true,
+                text: 'Оборудование по приборам'
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true
             }
         }
-    });
+    }
+});
 }
 
 function showAuditLog() {
