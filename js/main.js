@@ -13,7 +13,7 @@ const statusOptions = ['Запыленность', 'Критическая за�
 let initialLoadComplete = false;
 // ------------------------------------------------------------
 
-// --- НОВОЕ: Функция заполнения полей по умолчанию (обновлена) ---
+// --- НОВОЕ: Функция заполнения полей по умолчанию ---
 function fillDefaults(obj, defaults) {
     for (const key in defaults) {
         if (obj[key] === undefined) {
@@ -33,7 +33,6 @@ const defaultDevice = {
     status: 'Нет данных',
     lastCheck: '',
     description: '',
-    expanded: false, // <-- Добавлено
     lines: []
 };
 
@@ -44,7 +43,6 @@ const defaultLine = {
     status: 'Нет данных',
     lastCheck: '',
     description: '',
-    expanded: false, // <-- Добавлено
     equipment: []
 };
 
@@ -176,7 +174,6 @@ function initializeSampleData() {
             status: 'Исправен',
             lastCheck: '',
             description: 'Основной прибор',
-            expanded: false, // <-- Добавлено
             lines: [{
                 id: generateId('ln'),
                 name: 'Линия 1.1',
@@ -185,7 +182,6 @@ function initializeSampleData() {
                 status: 'Исправен',
                 lastCheck: '',
                 description: '',
-                expanded: false, // <-- Добавлено
                 equipment: [{
                     id: generateId('eq'),
                     name: 'Извещатель ИП 212-33',
@@ -432,7 +428,6 @@ function addNewDevice() {
         status: status || 'Исправен',
         lastCheck: lastCheck || '',
         description: description || '',
-        expanded: false, // <-- Явно задаем expanded
         lines: []
     };
     equipmentData.devices.push(newDevice);
@@ -477,7 +472,6 @@ function addNewLine() {
         status: status || 'Исправен',
         lastCheck: lastCheck || '',
         description: description || '',
-        expanded: false, // <-- Явно задаем expanded
         equipment: []
     };
     parentDevice.lines.push(newLine);
@@ -829,7 +823,6 @@ document.getElementById('fileInput').addEventListener('change', function (e) {
     reader.readAsText(file);
 });
 
-// --- НОВОЕ: Обновленная функция renderTable ---
 function renderTable() {
     const tbody = document.getElementById('tableBody');
     tbody.innerHTML = '';
@@ -838,11 +831,10 @@ function renderTable() {
     appSettings.searchHighlight = searchTerm.length > 0;
     const allRows = [];
     for (const device of equipmentData.devices) {
-        const deviceIsExpanded = device.expanded; // <-- Получаем состояние из данных
         allRows.push({
             element: `
-                <tr data-id="${device.id}" data-type="device" class="expandable-row" onclick="toggleExpand('${device.id}', 'device', this)" oncontextmenu="showContextMenu(event, '${device.id}', 'прибор', '${device.name}', '${device.address}', '${device.description}')">
-                    <td><i class="fas ${deviceIsExpanded ? 'fa-chevron-down' : 'fa-chevron-right'}"></i> <strong>${device.name}</strong></td> <!-- <-- Индикатор и изменение onclick -->
+                <tr data-id="${device.id}" data-type="device" onclick="toggleSelection('${device.id}', 'device', this)" oncontextmenu="showContextMenu(event, '${device.id}', 'прибор', '${device.name}', '${device.address}', '${device.description}')">
+                    <td><strong>${device.name}</strong></td>
                     <td></td>
                     <td></td>
                     <td>${device.address}</td>
@@ -859,64 +851,59 @@ function renderTable() {
             level: 0,
             sortKey: device.name.toLowerCase()
         });
-        if (deviceIsExpanded) { // <-- Проверяем, нужно ли отображать линии
-            for (const line of device.lines) {
-                const lineIsExpanded = line.expanded; // <-- Получаем состояние из данных
-                allRows.push({
-                    element: `
-                        <tr data-id="${line.id}" data-type="line" class="child-row expandable-row" onclick="toggleExpand('${line.id}', 'line', this)" oncontextmenu="showContextMenu(event, '${line.id}', 'линия', '${line.name}', '${line.address}', '${line.description}')">
-                            <td></td>
-                            <td><i class="fas ${lineIsExpanded ? 'fa-chevron-down' : 'fa-chevron-right'}"></i> <strong>${line.name}</strong></td> <!-- <-- Индикатор и изменение onclick -->
-                            <td></td>
-                            <td>${line.address}</td>
-                            <td>${line.zone}</td>
-                            <td><span class="status-badge status-${line.status.toLowerCase().replace(' ', '-')}">${line.status}</span></td>
-                            <td>${line.lastCheck}</td>
-                            <td>${line.description}</td>
-                            <td>
-                                <button class="btn-icon" onclick="showEditModal('${line.id}', 'line', '${line.name}', '${line.address}', '${line.zone}', '${line.status}', '${line.lastCheck}', '${line.description}')"><i class="fas fa-edit"></i></button>
-                                <button class="btn-icon" onclick="deleteItem('${line.id}', 'линия', '${line.name}')"><i class="fas fa-trash"></i></button>
-                            </td>
-                        </tr>
-                    `,
-                    level: 1,
-                    sortKey: device.name.toLowerCase() + line.name.toLowerCase()
-                });
-                if (lineIsExpanded) { // <-- Проверяем, нужно ли отображать оборудование
-                    for (const eq of line.equipment) {
-                        const isMatch = ((eq.name || '').toLowerCase().includes(searchTerm) ||
-                            (eq.address || '').toLowerCase().includes(searchTerm) ||
-                            (eq.zone || '').toLowerCase().includes(searchTerm) ||
-                            (eq.description || '').toLowerCase().includes(searchTerm));
-                        const isStatusMatch = !statusFilter || (eq.status || '') === statusFilter;
-                        if (isMatch && isStatusMatch) {
-                            allRows.push({
-                                element: `
-                                    <tr data-id="${eq.id}" data-type="equipment" class="child-row" onclick="toggleSelection('${eq.id}', 'equipment', this)" oncontextmenu="showContextMenu(event, '${eq.id}', 'оборудование', '${eq.name}', '${eq.address}', '${eq.description}')">
-                                        <td></td>
-                                        <td></td>
-                                        <td>${eq.name}</td>
-                                        <td>${eq.address}</td>
-                                        <td>${eq.zone}</td>
-                                        <td><span class="status-badge status-${(eq.status || '').toLowerCase().replace(' ', '-')}">${eq.status || 'Нет данных'}</span></td>
-                                        <td>${eq.lastCheck}</td>
-                                        <td>${eq.description}</td>
-                                        <td>
-                                            <button class="btn-icon" onclick="showEditModal('${eq.id}', 'equipment', '${eq.name}', '${eq.address}', '${eq.zone}', '${eq.status}', '${eq.lastCheck}', '${eq.description}')"><i class="fas fa-edit"></i></button>
-                                            <button class="btn-icon" onclick="deleteItem('${eq.id}', 'оборудование', '${eq.name}')"><i class="fas fa-trash"></i></button>
-                                        </td>
-                                    </tr>
-                                `,
-                                level: 2,
-                                sortKey: device.name.toLowerCase() + line.name.toLowerCase() + eq.name.toLowerCase()
-                            });
-                        }
-                    }
+        for (const line of device.lines) {
+            allRows.push({
+                element: `
+                    <tr data-id="${line.id}" data-type="line" class="child-row" onclick="toggleSelection('${line.id}', 'line', this)" oncontextmenu="showContextMenu(event, '${line.id}', 'линия', '${line.name}', '${line.address}', '${line.description}')">
+                        <td></td>
+                        <td><strong>${line.name}</strong></td>
+                        <td></td>
+                        <td>${line.address}</td>
+                        <td>${line.zone}</td>
+                        <td><span class="status-badge status-${line.status.toLowerCase().replace(' ', '-')}">${line.status}</span></td>
+                        <td>${line.lastCheck}</td>
+                        <td>${line.description}</td>
+                        <td>
+                            <button class="btn-icon" onclick="showEditModal('${line.id}', 'line', '${line.name}', '${line.address}', '${line.zone}', '${line.status}', '${line.lastCheck}', '${line.description}')"><i class="fas fa-edit"></i></button>
+                            <button class="btn-icon" onclick="deleteItem('${line.id}', 'линия', '${line.name}')"><i class="fas fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `,
+                level: 1,
+                sortKey: device.name.toLowerCase() + line.name.toLowerCase()
+            });
+            for (const eq of line.equipment) {
+                const isMatch = ((eq.name || '').toLowerCase().includes(searchTerm) ||
+                    (eq.address || '').toLowerCase().includes(searchTerm) ||
+                    (eq.zone || '').toLowerCase().includes(searchTerm) ||
+                    (eq.description || '').toLowerCase().includes(searchTerm));
+                const isStatusMatch = !statusFilter || (eq.status || '') === statusFilter;
+                if (isMatch && isStatusMatch) {
+                    allRows.push({
+                        element: `
+                            <tr data-id="${eq.id}" data-type="equipment" class="child-row" onclick="toggleSelection('${eq.id}', 'equipment', this)" oncontextmenu="showContextMenu(event, '${eq.id}', 'оборудование', '${eq.name}', '${eq.address}', '${eq.description}')">
+                                <td></td>
+                                <td></td>
+                                <td>${eq.name}</td>
+                                <td>${eq.address}</td>
+                                <td>${eq.zone}</td>
+                                <td><span class="status-badge status-${(eq.status || '').toLowerCase().replace(' ', '-')}">${eq.status || 'Нет данных'}</span></td>
+                                <td>${eq.lastCheck}</td>
+                                <td>${eq.description}</td>
+                                <td>
+                                    <button class="btn-icon" onclick="showEditModal('${eq.id}', 'equipment', '${eq.name}', '${eq.address}', '${eq.zone}', '${eq.status}', '${eq.lastCheck}', '${eq.description}')"><i class="fas fa-edit"></i></button>
+                                    <button class="btn-icon" onclick="deleteItem('${eq.id}', 'оборудование', '${eq.name}')"><i class="fas fa-trash"></i></button>
+                                </td>
+                            </tr>
+                        `,
+                        level: 2,
+                        sortKey: device.name.toLowerCase() + line.name.toLowerCase() + eq.name.toLowerCase()
+                    });
                 }
             }
         }
     }
-    // Сортировка (остается без изменений)
+    // Сортировка
     if (appSettings.currentSort.column !== null) {
         const col = appSettings.currentSort.column;
         allRows.sort((a, b) => {
@@ -1362,8 +1349,8 @@ function showContextMenu(event, id, type, name, address, currentDesc = '') {
         }
     });
     menu.style.display = 'block';
-    menu.style.left = `${event.pageX}px`;
-    menu.style.top = `${event.pageY}px`;
+    menu.style.left = `${event.clientX}px`;
+    menu.style.top = `${event.clientY}px`;
 }
 
 document.addEventListener('click', () => document.getElementById('contextMenu').style.display = 'none');
@@ -1528,18 +1515,18 @@ function updateCharts() {
     });
     statusChartInstance = new Chart(ctx1, {
         type: 'pie',
-         { // <-- Имя свойства 'data'
+        data: {
             labels: statusLabels,
             datasets: [{
-                 statusValues,
+                data: statusValues,
                 backgroundColor: statusChartColors,
                 borderWidth: 1
             }]
         },
         options: {
-            responsive: true, // Важно для адаптивности
-            maintainAspectRatio: false, // Отключаем сохранение соотношения сторон по умолчанию
-            aspectRatio: 1.3, // Ширина / Высота, делаем диаграмму чуть шире
+            responsive: true,
+            maintainAspectRatio: false,
+            aspectRatio: 1.3,
             plugins: {
                 title: {
                     display: true,
@@ -1552,20 +1539,20 @@ function updateCharts() {
     // ИСПРАВЛЕНО: Убрана лишняя запятая после 'data'
     deviceChartInstance = new Chart(ctx2, {
         type: 'bar',
-         { // <-- Начало объекта data
+        data: { // <-- Начало объекта data
             labels: Object.keys(deviceData),
             datasets: [{
                 label: 'Количество оборудования',
-                 Object.values(deviceData), // <-- Имя свойства 'data' внутри datasets
+                data: Object.values(deviceData), // <-- Имя свойства 'data' внутри datasets
                 backgroundColor: 'rgba(46, 134, 171, 0.7)',
                 borderColor: 'rgba(46, 134, 171, 1)',
                 borderWidth: 1
             }]
         }, // <-- Запятая после 'data', разделяющая свойства объекта Chart
         options: { // <-- Начало свойства 'options'
-            responsive: true, // Важно для адаптивности
-            maintainAspectRatio: false, // Отключаем сохранение соотношения сторон по умолчанию
-            aspectRatio: 1.3, // Ширина / Высота, делаем диаграмму чуть шире
+            responsive: true,
+            maintainAspectRatio: false,
+            aspectRatio: 1.3,
             plugins: {
                 title: {
                     display: true,
@@ -1595,44 +1582,6 @@ function showAuditLog() {
         contentDiv.innerHTML = recentLogs.map(entry => `<p><strong>${entry.timestamp}</strong> - ${entry.action}: ${entry.details}</p>`).join('');
     }
 }
-
-// --- НОВОЕ: Функция для переключения развернутости ---
-function toggleExpand(id, type, rowElement) {
-    let item = null;
-    for (const d of equipmentData.devices) {
-        if (type === 'device' && d.id === id) {
-            d.expanded = !d.expanded; // Переключаем состояние
-            item = d;
-            break;
-        }
-        for (const l of d.lines) {
-            if (type === 'line' && l.id === id) {
-                l.expanded = !l.expanded; // Переключаем состояние
-                item = l;
-                break;
-            }
-        }
-        if (item) break;
-    }
-
-    if (item) {
-        // Обновляем иконку в строке (опционально, можно и через перерисовку)
-        const iconElement = rowElement.querySelector('i.fas');
-        if (iconElement) {
-            iconElement.className = iconElement.className.replace(
-                type === 'device' ? (item.expanded ? 'fa-chevron-right' : 'fa-chevron-down') :
-                             (item.expanded ? 'fa-chevron-right' : 'fa-chevron-down'),
-                type === 'device' ? (item.expanded ? 'fa-chevron-down' : 'fa-chevron-right') :
-                             (item.expanded ? 'fa-chevron-down' : 'fa-chevron-right')
-            );
-        }
-        // Перерисовываем таблицу для отражения изменений
-        renderTable();
-        // Сохраняем изменения в Firebase
-        saveToFirebase();
-    }
-}
-// ------------------------------------------
 
 // Инициализация при загрузке DOM
 document.addEventListener('DOMContentLoaded', function () {
