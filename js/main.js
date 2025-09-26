@@ -9,10 +9,52 @@ let appSettings = {
 let statusChartInstance = null;
 let deviceChartInstance = null;
 const statusOptions = ['Запыленность', 'Критическая запыленность', 'Отключен', 'Потеря связи', 'Нет данных', 'Исправен'];
-
 // --- НОВОЕ: Флаг для избежания лишних сохранений при первом чтении ---
 let initialLoadComplete = false;
 // ------------------------------------------------------------
+
+// --- НОВОЕ: Функция заполнения полей по умолчанию ---
+function fillDefaults(obj, defaults) {
+    for (const key in defaults) {
+        if (obj[key] === undefined) {
+            obj[key] = JSON.parse(JSON.stringify(defaults[key])); // Используем JSON.parse/stringify для глубокого копирования
+        } else if (typeof obj[key] === 'object' && obj[key] !== null && !Array.isArray(obj[key])) {
+            fillDefaults(obj[key], defaults[key]);
+        } else if (Array.isArray(obj[key])) {
+            obj[key].forEach(item => fillDefaults(item, defaults[key][0])); // defaults[key] должен быть массивом с одним элементом
+        }
+    }
+}
+
+const defaultDevice = {
+    name: 'Новое устройство',
+    address: '',
+    zone: '',
+    status: 'Нет данных',
+    lastCheck: '',
+    description: '',
+    lines: []
+};
+
+const defaultLine = {
+    name: 'Новая линия',
+    address: '',
+    zone: '',
+    status: 'Нет данных',
+    lastCheck: '',
+    description: '',
+    equipment: []
+};
+
+const defaultEquipment = {
+    name: 'Новое оборудование',
+    address: '',
+    zone: '',
+    status: 'Нет данных',
+    lastCheck: '',
+    description: ''
+};
+// ------------------------------------------
 
 function generateId(prefix) {
     let id;
@@ -71,11 +113,21 @@ function loadFromFirebase() {
     equipmentDataRef.once('value')
         .then((snapshot) => {
             const data = snapshot.val();
-            if (data) {
+            if (data && data.devices && Array.isArray(data.devices)) {
+                // Применяем функцию ко всему загруженному объекту
+                data.devices.forEach(device => {
+                    fillDefaults(device, defaultDevice);
+                    device.lines.forEach(line => {
+                        fillDefaults(line, defaultLine);
+                        line.equipment.forEach(eq => {
+                            fillDefaults(eq, defaultEquipment);
+                        });
+                    });
+                });
                 equipmentData = data;
-                console.log("Данные equipmentData загружены из Firebase:", equipmentData);
+                console.log("Данные equipmentData загружены из Firebase и заполнены по умолчанию:", equipmentData);
             } else {
-                console.log("Данные equipmentData в Firebase отсутствуют, инициализируем пустыми.");
+                console.log("Данные equipmentData в Firebase отсутствуют или имеют неверный формат, инициализируем пустыми.");
                 equipmentData = { devices: [] }; // Инициализация пустой структуры
                 initializeSampleData(); // Инициализация примера, если нужно
                 saveToFirebase(); // Сохраняем пример в Firebase
@@ -113,7 +165,7 @@ function loadFromFirebase() {
 // ------------------------------------------
 
 function initializeSampleData() {
-    equipmentData = {
+    const sampleData = {
         devices: [{
             id: generateId('dev'),
             name: 'Прибор 1',
@@ -158,6 +210,17 @@ function initializeSampleData() {
             }]
         }]
     };
+    // Применяем fillDefaults к образцу
+    sampleData.devices.forEach(device => {
+        fillDefaults(device, defaultDevice);
+        device.lines.forEach(line => {
+            fillDefaults(line, defaultLine);
+            line.equipment.forEach(eq => {
+                fillDefaults(eq, defaultEquipment);
+            });
+        });
+    });
+    equipmentData = sampleData;
     addAuditEntry('Инициализация', 'Загружены примеры данных');
 }
 
@@ -224,6 +287,20 @@ function addAuditEntry(action, details) {
 }
 // ------------------------------------------
 
+// --- НОВОЕ: Функция для рендеринга лога аудита ---
+function renderAuditLog() {
+    // Эта функция может обновлять отображение лога аудита на странице
+    // или просто быть пустой, если отображение лога происходит по-другому (например, в модальном окне)
+    // Пока оставим пустой, так как в UI вызов этой функции, кроме как в loadFromFirebase, не встречается
+    // и отображение лога происходит в showAuditLog
+    console.log("Функция renderAuditLog вызвана. Лог аудита:", auditLog);
+    // Если у вас есть элемент на странице для отображения лога, обновите его здесь
+    // Например:
+    // const logContainer = document.getElementById('someLogContainerId');
+    // logContainer.innerHTML = auditLog.map(entry => `<p>${entry.timestamp} - ${entry.action}: ${entry.details}</p>`).join('');
+}
+// ------------------------------------------
+
 function showAddModal(type) {
     const modal = document.createElement('div');
     modal.id = 'addModal';
@@ -234,7 +311,7 @@ function showAddModal(type) {
             <input type="text" id="newName" placeholder="Название прибора" required>
             <input type="text" id="newAddress" placeholder="Адрес (например: 0.1)" class="tooltip" title="Формат: число.число">
             <input type="text" id="newZone" placeholder="Зона (например: 0.1)" class="tooltip" title="Формат: число.число">
-            <select id="newStatus">
+            <select id="newStatus" onchange="updateStatusStyle(this)">
                 <option value="Исправен">Исправен</option>
                 <option value="Запыленность">Запыленность</option>
                 <option value="Критическая запыленность">Критическая запыленность</option>
@@ -252,7 +329,7 @@ function showAddModal(type) {
             <input type="text" id="newName" placeholder="Название линии" required>
             <input type="text" id="newAddress" placeholder="Адрес (например: 1.1)" class="tooltip" title="Формат: число.число">
             <input type="text" id="newZone" placeholder="Зона (например: 1.1)" class="tooltip" title="Формат: число.число">
-            <select id="newStatus">
+            <select id="newStatus" onchange="updateStatusStyle(this)">
                 <option value="Исправен">Исправен</option>
                 <option value="Запыленность">Запыленность</option>
                 <option value="Критическая запыленность">Критическая запыленность</option>
@@ -271,7 +348,7 @@ function showAddModal(type) {
             <input type="text" id="newAddress" placeholder="Адрес (например: 1.21)" class="tooltip" title="Формат: число.число">
             <input type="text" id="newZone" placeholder="Зона (например: 3.3)" class="tooltip" title="Формат: число.число">
             <input type="date" id="newLastCheck">
-            <select id="newStatus">
+            <select id="newStatus" onchange="updateStatusStyle(this)">
                 <option value="">Выберите состояние</option>
                 <option value="Запыленность">Запыленность</option>
                 <option value="Критическая запыленность">Критическая запыленность</option>
@@ -283,7 +360,6 @@ function showAddModal(type) {
             <textarea id="newDescription" placeholder="Описание"></textarea>
         `;
     }
-
     modal.innerHTML = `
         <div style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;display:flex;justify-content:center;align-items:center;">
             <div style="background:var(--card-bg);padding:20px;border-radius:10px;width:400px;">
@@ -297,7 +373,6 @@ function showAddModal(type) {
         </div>
     `;
     document.body.appendChild(modal);
-
     if (type === 'line' || type === 'equipment') {
         const parentSelect = document.getElementById('parentSelect');
         parentSelect.innerHTML = '';
@@ -319,6 +394,11 @@ function showAddModal(type) {
             });
         }
     }
+    // Применяем стили к статусу при открытии модального окна
+    const statusSelect = modal.querySelector('#newStatus');
+    if (statusSelect) {
+        updateStatusStyle(statusSelect);
+    }
 }
 
 function addNewDevice() {
@@ -328,7 +408,6 @@ function addNewDevice() {
     const status = document.getElementById('newStatus').value;
     const lastCheck = document.getElementById('newLastCheck').value;
     const description = document.getElementById('newDescription').value;
-
     if (!name) {
         showToast('Введите название', 'error');
         return;
@@ -341,7 +420,6 @@ function addNewDevice() {
         showToast('Неверный формат зоны', 'error');
         return;
     }
-
     const newDevice = {
         id: generateId('dev'),
         name,
@@ -369,7 +447,6 @@ function addNewLine() {
     const status = document.getElementById('newStatus').value;
     const lastCheck = document.getElementById('newLastCheck').value;
     const description = document.getElementById('newDescription').value;
-
     if (!parentId || !name) {
         showToast('Выберите прибор и введите название линии', 'error');
         return;
@@ -382,13 +459,11 @@ function addNewLine() {
         showToast('Неверный формат зоны', 'error');
         return;
     }
-
     const parentDevice = equipmentData.devices.find(d => d.id === parentId);
     if (!parentDevice) {
         showToast('Родительский прибор не найден', 'error');
         return;
     }
-
     const newLine = {
         id: generateId('ln'),
         name,
@@ -416,7 +491,6 @@ function addNewEquipment() {
     const status = document.getElementById('newStatus').value;
     const lastCheck = document.getElementById('newLastCheck').value;
     const description = document.getElementById('newDescription').value;
-
     if (!parentId || !name) {
         showToast('Выберите линию и введите название оборудования', 'error');
         return;
@@ -433,7 +507,6 @@ function addNewEquipment() {
         showToast('Выберите состояние', 'error');
         return;
     }
-
     let targetLine = null;
     for (const d of equipmentData.devices) {
         targetLine = d.lines.find(l => l.id === parentId);
@@ -443,7 +516,6 @@ function addNewEquipment() {
         showToast('Родительская линия не найдена', 'error');
         return;
     }
-
     const newEquipment = {
         id: generateId('eq'),
         name,
@@ -468,11 +540,9 @@ function updateName(id, newName, type) {
         renderTable();
         return;
     }
-
     let item = null;
     let parentName = '';
     let oldName = '';
-
     for (const d of equipmentData.devices) {
         if (d.id === id) {
             oldName = d.name;
@@ -500,7 +570,6 @@ function updateName(id, newName, type) {
         }
         if (item) break;
     }
-
     if (item) {
         saveToFirebase(); // Было saveToLocalStorage();
         addAuditEntry('Изменение', `Имя ${type} изменено с "${oldName}" на "${newName}"`);
@@ -618,7 +687,6 @@ function updateLastCheck(id, newDate) {
 
 function deleteItem(id, type, name) {
     if (!confirm(`Удалить ${type} "${name}"? Это нельзя отменить.`)) return;
-
     for (let i = 0; i < equipmentData.devices.length; i++) {
         const d = equipmentData.devices[i];
         if (d.id === id) {
@@ -678,13 +746,11 @@ function exportToExcel() {
                 });
             });
         });
-
         // Используем SheetJS (xlsx) для создания файла
         const wb = XLSX.utils.book_new();
         const ws = XLSX.utils.aoa_to_sheet(wsData);
         XLSX.utils.book_append_sheet(wb, ws, "Оборудование");
         XLSX.writeFile(wb, 'пожарное_оборудование.xlsx');
-
         addAuditEntry('Экспорт', 'Данные экспортированы в Excel');
         showToast('Данные экспортированы в Excel', 'success');
     } catch (error) {
@@ -729,6 +795,16 @@ document.getElementById('fileInput').addEventListener('change', function (e) {
         try {
             const data = JSON.parse(ev.target.result);
             if (data.devices && Array.isArray(data.devices)) {
+                // Применяем fillDefaults к загруженному объекту
+                data.devices.forEach(device => {
+                    fillDefaults(device, defaultDevice);
+                    device.lines.forEach(line => {
+                        fillDefaults(line, defaultLine);
+                        line.equipment.forEach(eq => {
+                            fillDefaults(eq, defaultEquipment);
+                        });
+                    });
+                });
                 equipmentData = data;
                 renderTable();
                 updateParentSelects();
@@ -753,7 +829,6 @@ function renderTable() {
     const searchTerm = document.getElementById('searchInput').value.toLowerCase();
     const statusFilter = document.getElementById('statusFilter').value;
     appSettings.searchHighlight = searchTerm.length > 0;
-
     const allRows = [];
     for (const device of equipmentData.devices) {
         allRows.push({
@@ -776,7 +851,6 @@ function renderTable() {
             level: 0,
             sortKey: device.name.toLowerCase()
         });
-
         for (const line of device.lines) {
             allRows.push({
                 element: `
@@ -798,14 +872,12 @@ function renderTable() {
                 level: 1,
                 sortKey: device.name.toLowerCase() + line.name.toLowerCase()
             });
-
             for (const eq of line.equipment) {
-                const isMatch = (eq.name.toLowerCase().includes(searchTerm) ||
-                    eq.address.toLowerCase().includes(searchTerm) ||
-                    eq.zone.toLowerCase().includes(searchTerm) ||
-                    eq.description.toLowerCase().includes(searchTerm));
-                const isStatusMatch = !statusFilter || eq.status === statusFilter;
-
+                const isMatch = ((eq.name || '').toLowerCase().includes(searchTerm) ||
+                    (eq.address || '').toLowerCase().includes(searchTerm) ||
+                    (eq.zone || '').toLowerCase().includes(searchTerm) ||
+                    (eq.description || '').toLowerCase().includes(searchTerm));
+                const isStatusMatch = !statusFilter || (eq.status || '') === statusFilter;
                 if (isMatch && isStatusMatch) {
                     allRows.push({
                         element: `
@@ -815,7 +887,7 @@ function renderTable() {
                                 <td>${eq.name}</td>
                                 <td>${eq.address}</td>
                                 <td>${eq.zone}</td>
-                                <td><span class="status-badge status-${eq.status.toLowerCase().replace(' ', '-')}">${eq.status}</span></td>
+                                <td><span class="status-badge status-${(eq.status || '').toLowerCase().replace(' ', '-')}">${eq.status || 'Нет данных'}</span></td>
                                 <td>${eq.lastCheck}</td>
                                 <td>${eq.description}</td>
                                 <td>
@@ -831,7 +903,6 @@ function renderTable() {
             }
         }
     }
-
     // Сортировка
     if (appSettings.currentSort.column !== null) {
         const col = appSettings.currentSort.column;
@@ -854,7 +925,6 @@ function renderTable() {
             return 0;
         });
     }
-
     allRows.forEach(row => {
         tbody.innerHTML += row.element;
     });
@@ -905,7 +975,7 @@ function showEditModal(id, type, currentName, currentAddress, currentZone, curre
             <input type="text" id="editName" value="${currentName}" placeholder="Название прибора" required>
             <input type="text" id="editAddress" value="${currentAddress}" placeholder="Адрес (например: 0.1)" class="tooltip" title="Формат: число.число">
             <input type="text" id="editZone" value="${currentZone}" placeholder="Зона (например: 0.1)" class="tooltip" title="Формат: число.число">
-            <select id="editStatus">
+            <select id="editStatus" onchange="updateStatusStyle(this)">
                 <option value="Исправен" ${currentStatus === 'Исправен' ? 'selected' : ''}>Исправен</option>
                 <option value="Запыленность" ${currentStatus === 'Запыленность' ? 'selected' : ''}>Запыленность</option>
                 <option value="Критическая запыленность" ${currentStatus === 'Критическая запыленность' ? 'selected' : ''}>Критическая запыленность</option>
@@ -922,7 +992,7 @@ function showEditModal(id, type, currentName, currentAddress, currentZone, curre
             <input type="text" id="editName" value="${currentName}" placeholder="Название линии" required>
             <input type="text" id="editAddress" value="${currentAddress}" placeholder="Адрес (например: 1.1)" class="tooltip" title="Формат: число.число">
             <input type="text" id="editZone" value="${currentZone}" placeholder="Зона (например: 1.1)" class="tooltip" title="Формат: число.число">
-            <select id="editStatus">
+            <select id="editStatus" onchange="updateStatusStyle(this)">
                 <option value="Исправен" ${currentStatus === 'Исправен' ? 'selected' : ''}>Исправен</option>
                 <option value="Запыленность" ${currentStatus === 'Запыленность' ? 'selected' : ''}>Запыленность</option>
                 <option value="Критическая запыленность" ${currentStatus === 'Критическая запыленность' ? 'selected' : ''}>Критическая запыленность</option>
@@ -940,7 +1010,7 @@ function showEditModal(id, type, currentName, currentAddress, currentZone, curre
             <input type="text" id="editAddress" value="${currentAddress}" placeholder="Адрес (например: 1.21)" class="tooltip" title="Формат: число.число">
             <input type="text" id="editZone" value="${currentZone}" placeholder="Зона (например: 3.3)" class="tooltip" title="Формат: число.число">
             <input type="date" id="editLastCheck" value="${currentLastCheck}">
-            <select id="editStatus">
+            <select id="editStatus" onchange="updateStatusStyle(this)">
                 <option value="Запыленность" ${currentStatus === 'Запыленность' ? 'selected' : ''}>Запыленность</option>
                 <option value="Критическая запыленность" ${currentStatus === 'Критическая запыленность' ? 'selected' : ''}>Критическая запыленность</option>
                 <option value="Отключен" ${currentStatus === 'Отключен' ? 'selected' : ''}>Отключен</option>
@@ -951,7 +1021,6 @@ function showEditModal(id, type, currentName, currentAddress, currentZone, curre
             <textarea id="editDescription" placeholder="Описание">${currentDescription}</textarea>
         `;
     }
-
     modal.innerHTML = `
         <div style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;display:flex;justify-content:center;align-items:center;">
             <div style="background:var(--card-bg);padding:20px;border-radius:10px;width:400px;">
@@ -965,6 +1034,11 @@ function showEditModal(id, type, currentName, currentAddress, currentZone, curre
         </div>
     `;
     document.body.appendChild(modal);
+    // Применяем стили к статусу при открытии модального окна
+    const statusSelect = modal.querySelector('#editStatus');
+    if (statusSelect) {
+        updateStatusStyle(statusSelect);
+    }
 }
 
 function saveEdit(id, type) {
@@ -974,7 +1048,6 @@ function saveEdit(id, type) {
     const status = document.getElementById('editStatus').value;
     const lastCheck = document.getElementById('editLastCheck').value;
     const description = document.getElementById('editDescription').value;
-
     if (!name) {
         showToast('Введите название', 'error');
         return;
@@ -991,11 +1064,9 @@ function saveEdit(id, type) {
         showToast('Выберите состояние', 'error');
         return;
     }
-
     let item = null;
     let parentName = '';
     let oldValues = {};
-
     for (const d of equipmentData.devices) {
         if (d.id === id) {
             item = d;
@@ -1038,7 +1109,6 @@ function saveEdit(id, type) {
         }
         if (item) break;
     }
-
     if (item) {
         saveToFirebase(); // Было saveToLocalStorage();
         // Формируем сообщение об изменении
@@ -1049,7 +1119,6 @@ function saveEdit(id, type) {
         if (oldValues.status !== status) changes.push(`статус с "${oldValues.status}" на "${status}"`);
         if (oldValues.lastCheck !== lastCheck) changes.push(`дату проверки с "${oldValues.lastCheck}" на "${lastCheck}"`);
         if (oldValues.description !== description) changes.push(`описание с "${oldValues.description}" на "${description}"`);
-
         if (changes.length > 0) {
             addAuditEntry('Изменение', `${type.charAt(0).toUpperCase() + type.slice(1)} "${name}": ${changes.join(', ')}`);
         }
@@ -1094,11 +1163,15 @@ function changeStatusBulk() {
         }
     }
     if (!hasEquipment) return showToast('Выберите хотя бы одно оборудование', 'warning');
-
     const modal = document.createElement('div');
     modal.id = 'bulkStatusModal';
-    modal.innerHTML = `<div style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;display:flex;justify-content:center;align-items:center;"><div style="background:var(--card-bg);padding:20px;border-radius:10px;width:300px;"><h3><i class="fas fa-exchange-alt"></i> Изменить статус</h3><select id="bulkStatusInput" style="width:100%;padding:10px;margin:10px 0;"><option value="Исправен">Исправен</option><option value="Запыленность">Запыленность</option><option value="Критическая запыленность">Критическая запыленность</option><option value="Отключен">Отключен</option><option value="Потеря связи">Потеря связи</option><option value="Нет данных">Нет данных</option></select><div style="margin-top:15px;"><button class="btn primary-btn" onclick="applyBulkStatus()">Применить</button><button class="btn secondary-btn" onclick="document.getElementById('bulkStatusModal').remove()">Отмена</button></div></div></div>`;
+    modal.innerHTML = `<div style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;display:flex;justify-content:center;align-items:center;"><div style="background:var(--card-bg);padding:20px;border-radius:10px;width:300px;"><h3><i class="fas fa-exchange-alt"></i> Изменить статус</h3><select id="bulkStatusInput" style="width:100%;padding:10px;margin:10px 0;" onchange="updateStatusStyle(this)"><option value="Исправен">Исправен</option><option value="Запыленность">Запыленность</option><option value="Критическая запыленность">Критическая запыленность</option><option value="Отключен">Отключен</option><option value="Потеря связи">Потеря связи</option><option value="Нет данных">Нет данных</option></select><div style="margin-top:15px;"><button class="btn primary-btn" onclick="applyBulkStatus()">Применить</button><button class="btn secondary-btn" onclick="document.getElementById('bulkStatusModal').remove()">Отмена</button></div></div></div>`;
     document.body.appendChild(modal);
+    // Применяем стили к статусу при открытии модального окна
+    const statusSelect = modal.querySelector('#bulkStatusInput');
+    if (statusSelect) {
+        updateStatusStyle(statusSelect);
+    }
 }
 
 function applyBulkStatus() {
@@ -1136,7 +1209,6 @@ function changeDateBulk() {
         }
     }
     if (!hasEquipment) return showToast('Выберите хотя бы одно оборудование', 'warning');
-
     const modal = document.createElement('div');
     modal.id = 'bulkDateModal';
     modal.innerHTML = `<div style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;display:flex;justify-content:center;align-items:center;"><div style="background:var(--card-bg);padding:20px;border-radius:10px;width:300px;"><h3><i class="fas fa-calendar-alt"></i> Изменить дату проверки</h3><input type="date" id="bulkDateInput" style="width:100%;padding:10px;margin:10px 0;"><div style="margin-top:15px;"><button class="btn primary-btn" onclick="applyBulkDate()">Применить</button><button class="btn secondary-btn" onclick="document.getElementById('bulkDateModal').remove()">Отмена</button></div></div></div>`;
@@ -1176,7 +1248,6 @@ function applyBulkDate() {
 function deleteBulk() {
     if (appSettings.selectedItems.size === 0) return;
     if (!confirm(`Удалить ${appSettings.selectedItems.size} выбранных элементов? Это нельзя отменить.`)) return;
-
     let count = 0;
     // Проходим по копии Set, чтобы избежать проблем с итерацией при удалении
     for (const item of new Set(appSettings.selectedItems)) {
@@ -1197,7 +1268,6 @@ function deleteBulk() {
             count++;
         }
     }
-
     // renderTable(); // deleteItem уже вызывает renderTable()
     // updateParentSelects(); // deleteItem уже вызывает updateParentSelects()
     // saveToFirebase(); // deleteItem уже вызывает saveToFirebase()
@@ -1213,14 +1283,12 @@ function sortTable(colIdx) {
     const table = document.getElementById('equipmentTable');
     const tbody = table.querySelector('tbody');
     const rows = Array.from(tbody.querySelectorAll('tr'));
-
     if (appSettings.currentSort.column === colIdx) {
         appSettings.currentSort.direction = appSettings.currentSort.direction === 'asc' ? 'desc' : 'asc';
     } else {
         appSettings.currentSort.column = colIdx;
         appSettings.currentSort.direction = 'asc';
     }
-
     // Простая сортировка только по первым трем столбцам (Прибор, Линия, Оборудование)
     // Сортировка учитывает вложенность
     rows.sort((a, b) => {
@@ -1228,17 +1296,14 @@ function sortTable(colIdx) {
         const textB = b.cells[colIdx].textContent.trim().toLowerCase();
         const levelA = Array.from(a.classList).includes('child-row') ? (Array.from(a.classList).includes('child-row') ? 2 : 1) : 0;
         const levelB = Array.from(b.classList).includes('child-row') ? (Array.from(b.classList).includes('child-row') ? 2 : 1) : 0;
-
         // Сравниваем уровни
         if (levelA < levelB) return appSettings.currentSort.direction === 'asc' ? -1 : 1;
         if (levelA > levelB) return appSettings.currentSort.direction === 'asc' ? 1 : -1;
-
         // Если уровни равны, сравниваем текст
         if (textA < textB) return appSettings.currentSort.direction === 'asc' ? -1 : 1;
         if (textA > textB) return appSettings.currentSort.direction === 'asc' ? 1 : -1;
         return 0;
     });
-
     // Удаляем все строки
     while (tbody.firstChild) {
         tbody.removeChild(tbody.firstChild);
@@ -1269,7 +1334,6 @@ function showContextMenu(event, id, type, name, address, currentDesc = '') {
             action: () => deleteItem(id, type, name)
         }
     ];
-
     items.forEach(item => {
         if (item.separator) {
             const separator = document.createElement('hr');
@@ -1284,7 +1348,6 @@ function showContextMenu(event, id, type, name, address, currentDesc = '') {
             menu.appendChild(menuItem);
         }
     });
-
     menu.style.display = 'block';
     menu.style.left = `${event.pageX}px`;
     menu.style.top = `${event.pageY}px`;
@@ -1342,19 +1405,16 @@ function updateStatistics() {
     const visibleStats = { total: 0 }; // Статистика для отображения (с учетом фильтров)
     const searchTerm = document.getElementById('searchInput').value.toLowerCase();
     const statusFilter = document.getElementById('statusFilter').value;
-
     equipmentData.devices.forEach(d => {
         d.lines.forEach(l => {
             l.equipment.forEach(eq => {
                 stats.total++;
                 stats[eq.status] = (stats[eq.status] || 0) + 1;
-
-                const isMatch = (eq.name.toLowerCase().includes(searchTerm) ||
-                    eq.address.toLowerCase().includes(searchTerm) ||
-                    eq.zone.toLowerCase().includes(searchTerm) ||
-                    eq.description.toLowerCase().includes(searchTerm));
-                const isStatusMatch = !statusFilter || eq.status === statusFilter;
-
+                const isMatch = ((eq.name || '').toLowerCase().includes(searchTerm) ||
+                    (eq.address || '').toLowerCase().includes(searchTerm) ||
+                    (eq.zone || '').toLowerCase().includes(searchTerm) ||
+                    (eq.description || '').toLowerCase().includes(searchTerm));
+                const isStatusMatch = !statusFilter || (eq.status || '') === statusFilter;
                 if (isMatch && isStatusMatch) {
                     visibleStats.total++;
                     visibleStats[eq.status] = (visibleStats[eq.status] || 0) + 1;
@@ -1362,7 +1422,6 @@ function updateStatistics() {
             });
         });
     });
-
     window.visibleStats = visibleStats; // Глобальная переменная для доступа в других функциях
     const container = document.getElementById('statsDisplay');
     container.innerHTML = '';
@@ -1383,7 +1442,6 @@ function updateStatistics() {
         { label: 'Потеря связи', value: visibleStats['Потеря связи'] || 0, color: statusColors['Потеря связи'], icon: 'fa-wifi' },
         { label: 'Нет данных', value: visibleStats['Нет данных'] || 0, color: statusColors['Нет данных'], icon: 'fa-question-circle' }
     ];
-
     items.forEach(i => {
         const el = document.createElement('div');
         el.className = 'stat-item';
@@ -1415,10 +1473,8 @@ function toggleCharts() {
 
 function updateCharts() {
     if (document.getElementById('chartsContainer').style.display === 'none') return;
-
     const ctx1 = document.getElementById('statusChart').getContext('2d');
     const ctx2 = document.getElementById('deviceChart').getContext('2d');
-
     // Уничтожаем старые диаграммы, если они существуют
     if (statusChartInstance) {
         statusChartInstance.destroy();
@@ -1426,7 +1482,6 @@ function updateCharts() {
     if (deviceChartInstance) {
         deviceChartInstance.destroy();
     }
-
     // Подготовка данных для диаграммы статусов
     const statusData = {};
     equipmentData.devices.forEach(d => {
@@ -1449,7 +1504,6 @@ function updateCharts() {
         };
         return colorMap[status] || 'rgba(128, 128, 128, 0.7)';
     });
-
     // Подготовка данных для диаграммы по приборам
     const deviceData = {};
     equipmentData.devices.forEach(d => {
@@ -1459,55 +1513,55 @@ function updateCharts() {
         });
         deviceData[d.name] = count;
     });
-
     statusChartInstance = new Chart(ctx1, {
-    type: 'pie',
-    data: { // ← ДОБАВЛЕНО `data:`
-        labels: statusLabels,
-        datasets: [{
-            data: statusValues,
-            backgroundColor: statusChartColors,
-            borderWidth: 1
-        }]
-    },
-    options: {
-        responsive: true,
-        plugins: {
-            title: {
-                display: true,
-                text: 'Распределение по состояниям'
-            }
-        }
-    }
-});
-
-deviceChartInstance = new Chart(ctx2, {
-    type: 'bar',
-    data: { // <-- Имя свойства 'data'
-        labels: Object.keys(deviceData),
-        datasets: [{
-            label: 'Количество оборудования',
-            data: Object.values(deviceData), // <-- Имя свойства 'data' внутри datasets
-            backgroundColor: 'rgba(46, 134, 171, 0.7)',
-            borderColor: 'rgba(46, 134, 171, 1)',
-            borderWidth: 1
-        }]
-    }, // <-- Запятая после 'data', разделяющая свойства объекта Chart
-    options: { // <-- Начало свойства 'options'
-        responsive: true,
-        plugins: {
-            title: {
-                display: true,
-                text: 'Оборудование по приборам'
-            }
+        type: 'pie',
+        data: {
+            labels: statusLabels,
+            datasets: [{
+                data: statusValues,
+                backgroundColor: statusChartColors,
+                borderWidth: 1
+            }]
         },
-        scales: {
-            y: {
-                beginAtZero: true
+        options: {
+            responsive: true,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Распределение по состояниям'
+                }
             }
         }
-    }
-});
+    });
+
+    // ИСПРАВЛЕНО: Убрана лишняя запятая после 'data'
+    deviceChartInstance = new Chart(ctx2, {
+        type: 'bar',
+        data: { // <-- Начало объекта data
+            labels: Object.keys(deviceData),
+            datasets: [{
+                label: 'Количество оборудования',
+                data: Object.values(deviceData), // <-- Имя свойства 'data' внутри datasets
+                backgroundColor: 'rgba(46, 134, 171, 0.7)',
+                borderColor: 'rgba(46, 134, 171, 1)',
+                borderWidth: 1
+            }]
+        }, // <-- Запятая после 'data', разделяющая свойства объекта Chart
+        options: { // <-- Начало свойства 'options'
+            responsive: true,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Оборудование по приборам'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
 }
 
 function showAuditLog() {
@@ -1515,7 +1569,6 @@ function showAuditLog() {
     modal.id = 'auditLogModal';
     modal.innerHTML = `<div style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;display:flex;justify-content:center;align-items:center;"><div style="background:var(--card-bg);padding:20px;border-radius:10px;width:80%;max-height:80vh;overflow-y:auto;"><h3><i class="fas fa-history"></i> Журнал аудита</h3><div id="auditLogContent" style="margin-top:10px;"></div><div style="margin-top:15px;"><button class="btn secondary-btn" onclick="document.getElementById('auditLogModal').remove()">Закрыть</button></div></div></div>`;
     document.body.appendChild(modal);
-
     const contentDiv = document.getElementById('auditLogContent');
     if (auditLog.length === 0) {
         contentDiv.innerHTML = '<p>Журнал аудита пуст.</p>';
