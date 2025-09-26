@@ -1515,7 +1515,7 @@ function updateCharts() {
     });
     statusChartInstance = new Chart(ctx1, {
         type: 'pie',
-         { // <-- Имя свойства 'data'
+        data: {
             labels: statusLabels,
             datasets: [{
                 data: statusValues,
@@ -1524,9 +1524,7 @@ function updateCharts() {
             }]
         },
         options: {
-            responsive: true, // Важно для адаптивности
-            maintainAspectRatio: false, // Отключаем сохранение соотношения сторон по умолчанию
-            aspectRatio: 1.3, // Ширина / Высота, делаем диаграмму чуть шире
+            responsive: true,
             plugins: {
                 title: {
                     display: true,
@@ -1539,20 +1537,18 @@ function updateCharts() {
     // ИСПРАВЛЕНО: Убрана лишняя запятая после 'data'
     deviceChartInstance = new Chart(ctx2, {
         type: 'bar',
-         { // <-- Начало объекта data
+        data: { // <-- Начало объекта data
             labels: Object.keys(deviceData),
             datasets: [{
                 label: 'Количество оборудования',
-                 Object.values(deviceData), // <-- Имя свойства 'data' внутри datasets
+                data: Object.values(deviceData), // <-- Имя свойства 'data' внутри datasets
                 backgroundColor: 'rgba(46, 134, 171, 0.7)',
                 borderColor: 'rgba(46, 134, 171, 1)',
                 borderWidth: 1
             }]
         }, // <-- Запятая после 'data', разделяющая свойства объекта Chart
         options: { // <-- Начало свойства 'options'
-            responsive: true, // Важно для адаптивности
-            maintainAspectRatio: false, // Отключаем сохранение соотношения сторон по умолчанию
-            aspectRatio: 1.3, // Ширина / Высота, делаем диаграмму чуть шире
+            responsive: true,
             plugins: {
                 title: {
                     display: true,
