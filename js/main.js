@@ -1543,7 +1543,7 @@ function updateCharts() {
             labels: Object.keys(deviceData),
             datasets: [{
                 label: 'Количество оборудования',
-                data: Object.values(deviceData),
+                Object.values(deviceData),
                 backgroundColor: 'rgba(46, 134, 171, 0.7)',
                 borderColor: 'rgba(46, 134, 171, 1)',
                 borderWidth: 1
