@@ -1515,7 +1515,7 @@ function updateCharts() {
     });
     statusChartInstance = new Chart(ctx1, {
         type: 'pie',
-        data: {
+        {
             labels: statusLabels,
             datasets: [{
                 data: statusValues,
@@ -1539,7 +1539,7 @@ function updateCharts() {
     // ИСПРАВЛЕНО: Убрана лишняя запятая после 'data'
     deviceChartInstance = new Chart(ctx2, {
         type: 'bar',
-        data: {{ // <-- Начало объекта data
+        { // <-- Начало объекта data
             labels: Object.keys(deviceData),
             datasets: [{
                 label: 'Количество оборудования',
