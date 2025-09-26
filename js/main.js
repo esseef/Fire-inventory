@@ -1515,7 +1515,6 @@ function updateCharts() {
     });
     statusChartInstance = new Chart(ctx1, {
         type: 'pie',
-        {
             labels: statusLabels,
             datasets: [{
                 data: statusValues,
